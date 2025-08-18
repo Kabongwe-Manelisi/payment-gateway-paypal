@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PayPal Checkout</title>
+    <script src="https://www.paypal.com/sdk/js?client-id={{ client_id }}&currency=USD"></script>
+</head>
+<body>
+    <h1>Buy Something Cool</h1>
+    <div id="paypal-button-container"></div>
+
+    <script>
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return fetch('/create-order', {
+                    method: 'post'
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(data) {
+                    return data.id; // PayPal order ID
+                });
+            },
+            onApprove: function(data, actions) {
+                return fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders/${data.orderID}/capture`, {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_ACCESS_TOKEN' // You’ll need to handle this securely
+                    }
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(details) {
+                    alert('Transaction completed by ' + details.payer.name.given_name);
+                });
+            }
+        }).render('#paypal-button-container');
+    </script>
+</body>
+</html>
